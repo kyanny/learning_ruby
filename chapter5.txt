@@ -1,0 +1,79 @@
+*1263914308*[Ruby][初めてのRuby]5章 入出力
+
+ARGV は配列。組み込み定数。 Array#inject は List::Util reduce とか Gauche の fold のようなもの。
+
+>|ruby|
+expression = ARGV.join(' + ')
+total = ARGV.inject(0){ |subtotal, arg| subtotal + arg.to_i }
+puts "#{expression} = #{total}"
+||<
+
+Rubyではコードブロックに独自の機能を付加してブロック付きメソッドによるリソース管理をしている（ブロックの前後で特別な処理をしてくれる）
+
+IO クラス -> File クラス
+
+イテレータ each_line が使える。 IO#lineno で行数カウント。
+
+>|ruby|
+File.open(ARGV.shift) { |f|
+    f.each_line do |line|
+        print "#{f.lineno}: #{line}"
+    end
+}
+||<
+
+seek とか過去三年で一度もやった覚えがないのでパス。
+
+File オブジェクトを変数に入れられる。ブロックなしで呼んで返り値を代入。 f.close で閉じる。
+
+>|ruby|
+f = File.open(ARGV.shift)
+p f.readline
+f.close
+||<
+
+$stdin, $stdout, $stderr は組み込み変数。 IO オブジェクト。 IO オブジェクトを代入すると puts などデフォルトで標準入出力を対象とするメソッドの入出力先が指定した IO オブジェクトに変化する。組み込み定数 STDIN, STDOUT, STDERR がデフォルト値。 File オブジェクトは IO オブジェクトの子孫なので以下のようにできる。デバッグログを特定のログファイルにキャプチャとか。
+
+>|ruby|
+File.open(ARGV.shift, 'w') { |f|
+    $stdout = f
+    puts "Welcome to Grrr"
+    $stdout = STDOUT
+}
+||<
+
+組み込み定数 ARGF (Object)
+
+>|ruby|
+ARGF.each_line do |line|
+    print line
+end
+||<
+
+Perl で <> 使うときに、ファイル名が引数で渡されたらそのファイルを対象にして while (<$fh>) {} とかして、そうでない場合は標準入力を while (<>) {} で読みたい、みたいなケースで使えるのかな。
+
+StringIO は IO オブジェクトのように振る舞う文字列オブジェクト。デバッグログを変数にキャプチャしておく、などの場合に使えそう。
+
+>|ruby|
+require 'stringio'
+buffer = String.new
+sio = StringIO.new(buffer)
+puts "debian"
+warn "fedora"
+$stderr = $stdout = sio
+puts "ubuntu"
+warn "centos"
+$stdout = STDOUT
+puts "gentoo"
+warn "suse"
+buffer.each do |buf|
+    puts "- #{buf}"
+end
+||<
+
+エンコーディングについては Ruby1.9 の話なので、いまは軽く読む程度にしとく。
+
+- [http://d.hatena.ne.jp/a666666/searchdiary?word=%2a%5b%bd%e9%a4%e1%a4%c6%a4%ceRuby%5d:title=初めてのRuby勉強日記]
+- [http://d.hatena.ne.jp/a666666/archive?word=%2a%5b%bd%e9%a4%e1%a4%c6%a4%ceRuby%5d:title=初めてのRuby勉強日記(見だし一覧)]
+- [http://github.com/kyanny/learning_ruby:title]
+[asin:4873113679:detail]
