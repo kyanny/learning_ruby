@@ -1,0 +1,14 @@
+*t*[Ruby][初めてのRuby]6章 変数と式
+
+キーワード拾いメモは明日。変数と式についてはマインドマップを書いてみたのでアップ。演算子はかけなかった。
+
+初めてのRuby 6章 変数についてのマインドマップです
+<img src="http://30d.jp/img/kyanny/public/5baa0a78-05eb-11df-bd20-0018f3d17807_medium.jpg" />
+
+初めてのRuby 6章 式についてのマインドマップです
+<img src="http://30d.jp/img/kyanny/public/645a836e-05eb-11df-b507-0018f3d17792_medium.jpg" />
+
+- [http://d.hatena.ne.jp/a666666/searchdiary?word=%2a%5b%bd%e9%a4%e1%a4%c6%a4%ceRuby%5d:title=初めてのRuby勉強日記]
+- [http://d.hatena.ne.jp/a666666/archive?word=%2a%5b%bd%e9%a4%e1%a4%c6%a4%ceRuby%5d:title=初めてのRuby勉強日記(見だし一覧)]
+- [http://github.com/kyanny/learning_ruby:title]
+[asin:4873113679:detail]
