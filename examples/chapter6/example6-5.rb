@@ -1,0 +1,4 @@
+CONST = 1
+p CONST
+CONST = 2
+p CONST
