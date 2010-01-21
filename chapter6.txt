@@ -1,6 +1,236 @@
-*t*[Ruby][初めてのRuby]6章 変数と式
+*1264010100*[Ruby][初めてのRuby]6章 変数と式
 
 キーワード拾いメモは明日。変数と式についてはマインドマップを書いてみたのでアップ。演算子はかけなかった。
+
+- 変数
+-- オブジェクトへの参照
+-- 複数の変数が同じオブジェクトを参照していることがある
+
+>|ruby|
+cattle = "yahoo"
+p cattle.length #=> 5
+animal = cattle
+cattle[2] = ?p
+p cattle #=> "yapoo"
+p animal #=> "yapoo"
+p cattle.equal? animal #=> true
+||<
+
+-- 呼び出し元の変数に影響を与えたくないときは複製する
+
+>|ruby|
+def describe(name)
+    name = name.dup
+    puts "This is a #{name}." #=> This is a yahoo.
+    name[2] = ?p
+    puts "This is a #{name}." #=> This is a yapoo.
+end
+CATTLE = "yahoo"
+describe(CATTLE)
+p CATTLE #=> "yahoo"
+||<
+
+- 変数の種類
+-- local_variable
+-- @instance_variable
+-- @@class_variable
+-- $global_variable
+-- CONSTANT_VALUE
+- 変数のスコープ
+-- ローカル変数は def, class, file など
+-- インスタンス変数は同じオブジェクトの別のメソッドをまたぐ
+-- クラス変数 ... 8章で
+-- グローバル変数は名前のとおり
+-- 定数はローカル変数と同じ?
+- 擬似変数
+
+>|ruby|
+p nil
+p true
+p false
+p self
+
+class Foo
+    p self
+    def foo
+        p self
+    end
+end
+Foo.new.foo
+
+p __FILE__
+p __LINE__
+p __LINE__
+if RUBY_VERSION >= "1.9"
+    p __ENCODING__
+end
+||<
+
+- 変数名
+-- @インスタンス変数 なども可
+
+- 演算子
+-- 再定義可能
+-- 多態性 <<
+-- 再定義不可能なものもある
+
+- 多重代入
+>|ruby|
+a, b = 1, 2, 3, 4, 5
+p a #=> 1
+p b #=> 2
+
+a, b, c = 1, 2
+p a #=> 1
+p b #=> 2
+p c #=> nil
+||<
+- 多値
+>|ruby|
+a, *b = 1, 2, 3, 4, 5
+p a #=> 1
+p b #=> [2, 3, 4, 5]
+||<
+-- 配列展開
+>|ruby|
+array = [1, 2, 3]
+a, b, c = *array
+p a #=> 1
+p b #=> 2
+p c #=> 3
+||<
+
+- 論理演算子
+-- 論理積
+>|ruby|
+# -*- coding: utf-8 -*-
+# a && b
+# 左オペランドが真
+p 1 && 2 #=> 2
+p 3 && nil #=> nil, 左オペランドが真のときは右オペランドの値を返す
+# 左オペランドが偽
+p nil && "foo" #=> nil
+p nil && false #=> nil, 左オペランドが偽のときは左オペランドの値を返す
+||<
+-- 論理和
+>|ruby|
+# -*- coding: utf-8 -*-
+# a || b
+# 左オペランドが真
+p 1 || 2 #=> 1
+p 3 || nil #=> 3, 左オペランドが真のときは左オペランドの値を返す
+# 左オペランドが偽
+p nil || "foo" #=> "foo"
+p nil || false #=> false, 左オペランドが偽の場合は右オペランドの値を返す
+||<
+-- 短絡評価する
+-- 初期化イディオム
+>|ruby|
+def generate_default_value
+    p 'default value generated'
+    return 'default value'
+end
+def some_method(param = nil)
+    param ||= generate_default_value
+    puts param.class
+end
+
+some_method(nil) #=> "default value generated", String
+some_method(false) #=> "default value generated", String
+some_method(true) #=> TrueClass
+some_method(0) #=> Fixnum
+some_method() #=> "default value generated", String
+||<
+
+- 範囲演算子
+-- Range オブジェクト
+
+- 制御式
+-- 文ではなく式 => 制御式は値を返す
+>|ruby|
+class Sample
+    attr_accessor :color
+end
+
+sample = Sample.new
+sample.color = "green"
+thought = if sample.color == "green" then
+              "danger"
+          else
+              "undefined"
+          end
+p "thought is #{thought}" #=> "thought is danger"
+
+sample = Sample.new
+sample.color = "red"
+thought = if sample.color == "green" then
+              "danger"
+          else
+              "undefined"
+          end
+p "thought is #{thought}" #=> "thought is undefined"
+||<
+
+- case 式
+-- case 比較演算子 ===
+
+- イテレータ
+-- loop, times, upto, each, ...
+
+- 脱出
+-- break, next, redo
+>|ruby|
+loop do
+    puts "woohoo"
+    break if /^quit/ =~ gets
+end
+||<
+>|ruby|
+3.times do |i|
+    3.times do |j|
+        break
+        puts "j = #{j}"
+    end
+    puts "i = #{i}"
+end
+||<
+
+- 例外処理
+-- begin, rescue, raise
+>|ruby|
+def do_something
+    raise "an error occured"
+end
+
+begin
+    do_something
+rescue => error then
+    p error
+else
+    puts "no error"
+ensure
+    puts "ensure"
+end
+||<
+
+- 大域脱出
+-- catch, throw
+>|ruby|
+catch(:exit) {
+    puts "foo"
+    loop do
+        puts "bar"
+        loop do
+            puts "baz"
+            throw :exit
+            puts "baz2"
+        end
+        puts "bar2"
+    end
+    puts "foo2"
+}
+puts "exit"
+||<
 
 初めてのRuby 6章 変数についてのマインドマップです
 <img src="http://30d.jp/img/kyanny/public/5baa0a78-05eb-11df-bd20-0018f3d17807_medium.jpg" />
