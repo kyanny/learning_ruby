@@ -5,7 +5,7 @@ end
 begin
     do_something
 rescue => error then
-    p error.message
+    p error
 else
     puts "no error"
 ensure
