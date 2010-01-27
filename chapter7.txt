@@ -1,0 +1,111 @@
+*1264602034*[Ruby][初めてのRuby]7章 メソッド
+
+- メソッドはサブルーチンのようなもの
+-- オブジェクトにメッセージを送り、内部状態を変化させる
+-- 内部状態を変化させない関数的メソッドもある
+- メソッド呼び出し、括弧の省略、メソッド連鎖
+-- 引数とメソッドの結合は弱い
+- レシーバ (オブジェクト) の省略
+-- private メソッドは常にレシーバ省略形式で呼び出さなければならない
+-- private メソッドと同名のローカル変数があるとメソッドを呼び出せない？
+
+>|ruby|
+# -*- coding: utf-8 -*-
+class Sample
+    def hover
+        vibrate = 1
+        #vibrate #=> ローカル変数への参照
+        self.vibrate #=> "vibrated", vibrate() メソッドを実行
+    end
+    def vibrate
+        p "vibrated"
+    end
+end
+
+sample = Sample.new
+sample.hover
+||<
+
+- 関数的メソッド、組み込み関数 p, puts
+- 引数展開 *args
+- メソッドの定義 def
+-- メソッド内で最後に評価された式の値が返り値
+- return
+-- 多値を返すときは return を明示する必要がある return a, b, c ([a, b, c] でも可)
+- 値を返さないメソッドは最後に nil を評価する慣習
+- デフォルト値 def some_method(a, b, c = 1)
+-- デフォルト値は呼び出し時に毎回評価される def some_method(time = Time.now)
+- 可変長引数
+- メソッド本体の変数スコープは独立
+
+>|ruby|
+# -*- coding: utf-8 -*-
+a = 1
+def some_method
+    p a
+end
+some_method() #=> NameError
+||<
+
+- ブロック付きメソッド (collection.each do ... end)
+-- ループの抽象化、ブロックへの機能付加 (リソース管理)、コールバック関数・イベントハンドラ
+- クロージャ
+-- ブロックのスコープは独立してないのでブロック外部の変数を束縛できる
+
+>|ruby|
+def create_counter
+    count = 1
+    return Proc.new do
+        count += 1
+        p count
+    end
+end
+
+counter = create_counter
+p counter.class #=> Proc
+counter.call #=> 2
+counter.call #=> 3
+||<
+
+- ブロック引数とブロックローカル変数
+-- Ruby1.9 ではブロック引数のスコープは外部と独立
+- ブロック付きメソッドの定義
+-- yield メソッド内からブロックをコールバック
+-- yield 式はブロックの評価値を返す
+- Proc (procedure)
+-- ブロック { || } => Proc オブジェクト
+-- イベントハンドラの例
+
+>|ruby|
+class SleepyPerson
+    def register_handler(&handler)
+        @event_handler = handler
+    end
+    def wake_up!
+        @event_handler.call Time.now, "woke up"
+    end
+end
+
+john = SleepyPerson.new
+john.register_handler { |time, message| p [time, message] }
+john.wake_up! #=> [Mon Jan 25 20:46:52 +0900 2010, "woke up"]
+||<
+
+- ブロック付きメソッドに Proc を渡す
+
+>|ruby|
+proc = Proc.new { puts "proc was called" }
+3.times(&proc)
+#=> proc was called
+#   proc was called
+#   proc was called
+||<
+
+ブロック付きメソッドの使い方はわかるけど、自分で作りたい場合がうまくイメージできない。もっと Ruby に習熟してくれば自然と使いたくなるものなのかな。なので yield も、本に書いてあったコールバックの図をみて動作は理解できたけど、本当に身についているとは言い難い。 map もどきの実装とか、コールバックに返り値が混ざってこんがらがる。
+
+Proc についてはもう少しすんなり入ってきた。 Perl でもコードリファレンスを渡してどうこう、みたいなことはやるので、それになぞらえて考えられたからかもしれない。そういう理解が正しいのかどうかは別として、「○○みたいなもの」という風に歩み寄っていくのは、○○をある程度わかっているときには役立つと思った。
+
+- [http://d.hatena.ne.jp/a666666/searchdiary?word=%2a%5b%bd%e9%a4%e1%a4%c6%a4%ceRuby%5d:title=初めてのRuby勉強日記]
+- [http://d.hatena.ne.jp/a666666/archive?word=%2a%5b%bd%e9%a4%e1%a4%c6%a4%ceRuby%5d:title=初めてのRuby勉強日記(見だし一覧)]
+- [http://github.com/kyanny/learning_ruby:title]
+[asin:4873113679:detail]
