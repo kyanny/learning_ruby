@@ -1,0 +1,295 @@
+*t*[Ruby][初めてのRuby]8章 オブジェクトとクラス
+
+9章は外部ライブラリや、やや特殊な機能に言及した内容なので、8章が実質的な最終章。
+
+- Ruby はクラスベースのオブジェクト指向
+- クラスは class ClassName ; end で定義する
+-- クラス名は大文字ではじめる (クラス名は定数なので
+- クラスの宣言のなかには任意の式を書ける
+>|ruby|
+class Duration
+    1 + 1
+end
+||<
+- 継承は < で class ClassName < Range ; end
+-- 多重継承はない
+>|ruby|
+class Duration < Range
+end
+||<
+- インスタンスメソッドの定義は def hoge; end で
+>|ruby|
+class Duration
+    def display
+        puts self
+    end
+end
+
+duration = Duration.new
+duration.display #=> #<Duration:0x544d90>
+||<
+- クラスメソッドの定義は def ClassName.hoge; end で
+-- ClassName のかわりに self.hoge と書くほうがよい
+>|ruby|
+class Duration
+    def self.print(x)
+        p x
+    end
+end
+
+Duration.print 1 #=> 1
+||<
+- インスタンス化は ClassName.new メソッドで
+-- initialize メソッドを定義して初期化処理をかく
+>|ruby|
+class Duration
+    def initialize(since, till)
+        @since = since
+        @until = till
+    end
+    attr_accessor :since, :until
+end
+
+duration = Duration.new(Time.now, Time.now + 3600)
+p duration.until # => Mon Feb 01 00:00:06 +0900 2010
+p duration.since = Time.now # => Sun Jan 31 23:00:06 +0900 2010
+||<
+- 属性
+-- getter/setter = since/since=
+--- method= という代入用のメソッドを定義するのが Ruby らしい
+-- attr_accessor, attr_reader, attr_writer
+- クラス定義の追加
+-- オープンクラス、再定義に対して開かれている
+>|ruby|
+class String
+    def caesar
+        tr 'a-zA-Z', 'n-za-mN-ZA-M'
+    end
+end
+
+puts "Learning Ruby".caesar #=> Yrneavat Ehol
+||<
+- 親クラスは再定義のときもそのままなので省略して書くのがふつう
+>|ruby|
+class Animal
+end
+
+class Yahoo < Animal
+end
+
+class Yahoo
+end
+
+p Yahoo.superclass #=> Animal
+||<
+- 定義の上書きと上書きの禁止 Class.freeze
+- スーパークラスの呼び出し super
+>|ruby|
+class Duration
+    def display(target=$>)
+        super
+        target.write "(#{self.since}-#{self.until})"
+    end
+end
+||<
+- super とだけ記述すると現在のメソッドの引数をそのまま引き渡して親クラスの実装を呼び出す
+- 引数を一つも渡さずに親クラスの実装を呼び出したい場合 super() と書く (括弧をかいて引数がないことを明示する)
+-- Perl でいうと $self->SUPER::method みたいなものか。 super だけ書くってけっこうピンとこない
+- インスタンス変数 @variable メンバ変数とか呼ばれたりするもの?
+-- インスタンスメソッドの中だけで参照できる
+>|ruby|
+# -*- coding: utf-8 -*-
+class Duration
+    def initialize(since, till)
+        @since = since
+        @until = till
+    end
+    attr_accessor :since, :until
+end
+
+class Duration # 再オープン
+    def print_since
+        p @since
+    end
+end
+
+duration1 = Duration.new(Time.now - 7, Time.now)
+duration2 = Duration.new(Time.now + 7, Time.now + 14)
+duration1.print_since #=> Sun Jan 31 23:26:31 +0900 2010
+duration2.print_since #=> Sun Jan 31 23:26:45 +0900 2010
+||<
+- クラス変数 @@variable
+-- スコープがやたらと広いので扱いに注意すること
+>|ruby|
+class Foo
+    @@class_variable = "foo"
+    def print
+        p @@class_variable
+    end
+end
+
+class Bar < Foo
+    p @@class_variable #=> "foo"
+    @@class_variable = "bar"
+    def print
+        p @@class_variable
+    end
+end
+
+foo = Foo.new
+foo.print #=> "bar"
+bar = Bar.new #=> "bar"
+bar.print
+||<
+- クラスに属するインスタンス変数も定義できる => クラスメソッドからのみ参照できる
+>|ruby|
+# -*- coding: utf-8 -*-
+class Foo
+    @foo = "foo"
+    def print
+        p @foo
+    end
+
+#    def print2
+#        p self.@foo #=> SyntaxError
+#    end
+
+    def self.print3
+        p @foo
+    end
+end
+
+foo = Foo.new
+foo.print #=> nil
+#foo.print2
+#p Foo.@foo #=> SyntaxError
+Foo.print3 #=> "foo"
+
+# Class オブジェクトのインスタンス変数は def ... end の中ではなく class ... end のレベルで定義する。
+# Class オブジェクトのインスタンス変数はそのクラスのクラスメソッドからしか参照できない。
+||<
+- クラスに属する定数
+>|ruby|
+class Duration
+    DAYS_OF_WEEK = 7
+    p DAYS_OF_WEEK #=> 7
+
+    def print_days_of_week
+        p DAYS_OF_WEEK
+    end
+end
+
+duration = Duration.new
+duration.print_days_of_week #=> 7
+p Duration::DAYS_OF_WEEK #=> 7
+||<
+-- トップレベルの定数はどこからでも Object::HOGE と参照できる
+- アクセス権限 public, private, protected
+-- private なメソッドはレシーバ省略形式でしか呼び出せない (self に対してしか呼び出せない)
+>|ruby|
+class Yapoo
+    def public_method
+    end
+
+    private
+    def internal_use
+    end
+    def public_api
+        return internal_use
+    end
+
+    public :public_api
+end
+
+yapoo = Yapoo.new
+yapoo.public_api
+yapoo.internal_use #=> NoMethodError: private method `internal_use' called for #<Yapoo:0x52ef68>
+||<
+-- private なメソッドと同じ名前のローカル変数があるとカブってしまうのでメソッドを呼び出せなくなる。名前のつけかたに注意。
+- 特異メソッド
+-- 特定のオブジェクトにだけ属するメソッド
+>|ruby|
+message = "Hello"
+def message.build_greeting(target)
+    "#{self}, #{target}."
+end
+
+p message.build_greeting("world") #=> "Hello, world."
+message2 = "Hello"
+p message2.build_greeting("world") #=> NoMethodError: undefined method `build_greeting' for "Hello":String
+||<
+-- Singleton パターンの実装などにつかえる
+>|ruby|
+CENTRAL_REPOSITORY = Object.new
+def CENTRAL_REPOSITORY.register(target)
+    @registered_objects ||= []
+    unless @registered_objects.include? target
+        @registered_objects << target
+    end
+end
+
+def CENTRAL_REPOSITORY.unregister(target)
+    @registered_objects ||= []
+    @registered_objects.delete(target)
+end
+||<
+- 特異クラス
+-- ある特定のインスタンスのためにあるクラス (?) このへんから理解が曖昧に...
+-- class << object と書くのが特異クラスの定義式
+>|ruby|
+CENTRAL_REPOSITORY = Object.new
+class << CENTRAL_REPOSITORY
+    def register(target)
+        @registered_objects ||= []
+        unless @registered_objects.include? target
+            @registered_objects << target
+        end
+    end
+
+    def unregister(target)
+        @registered_objects ||= []
+        @registered_objects.delete(target)
+    end
+end
+||<
+-- 特異クラスは Object#class にはでてこない
+- 特異メソッドと特異クラスの関係
+-- 特異メソッドとは特異クラスのインスタンスのこと
+- クラスメソッドとメタクラス
+-- クラスメソッドは Class オブジェクトの特異メソッド (???)
+>|ruby|
+class Duration
+    def initialize(since, till)
+        @since = since
+        @until = till
+    end
+    attr_accessor :since, :until
+end
+
+class Duration
+    def self.a_week_from(from)
+        return self.new(from, from + 7*24*60*60)
+    end
+end
+
+p Duration.a_week_from(Time.now) #=> #<Duration:0x542568 @until=Sun Feb 07 23:55:44 +0900 2010, @since=Sun Jan 31 23:55:44 +0900 2010>
+||<
+- モジュール
+-- インスタンス化できないクラス
+-- クラスはモジュール + インスタンス化能力
+-- クラスに MixIn して使う include 制限された多重継承
+-- クラスの継承関係にはあらわれる Module#ancestors
+--- モジュールの include は継承の特殊な一種
+-- 既存のクラスに対する拡張機能をかくときモジュールとしてかいて include する
+-- 名前空間の提供 MyModule::MyClass
+- メソッドの探索
+-- 特異メソッド -> インスタンスメソッド -> include したモジュールのインスタンスメソッド -> 親クラスへ -> method_missing
+- オーバーロードの不能性
+-- 引数の型や数で同名の違うメソッドを定義し使い分けることはできない
+-- Array#[] の例
+
+
+- [http://d.hatena.ne.jp/a666666/searchdiary?word=%2a%5b%bd%e9%a4%e1%a4%c6%a4%ceRuby%5d:title=初めてのRuby勉強日記]
+- [http://d.hatena.ne.jp/a666666/archive?word=%2a%5b%bd%e9%a4%e1%a4%c6%a4%ceRuby%5d:title=初めてのRuby勉強日記(見だし一覧)]
+- [http://github.com/kyanny/learning_ruby:title]
+[asin:4873113679:detail]
